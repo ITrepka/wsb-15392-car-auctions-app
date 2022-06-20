@@ -1,7 +1,44 @@
 from app import App
+from auction import Auction
+from car import Car
 from user import User
 
 
+def show_auctions():
+    app = App()
+    print(app.auctions)
+
+
+def my_auctions():
+    pass
+
+
+def create_auction():
+    app = App()
+    print("Tworzenie aukcji:\n")
+    title = input("Tytuł Aukcji:\n")
+    auction_duration = input("Ilość dni, które aukcja ma być aktywna:\n")
+    starting_price = input("Cena startowa:\n")
+    minimal_price = input("Cena minimalna:\n")
+    buy_now_price = input("Cena kup teraz:\n")
+    print("Przedmiot aukcji\n")
+    brand = input("Marka:\n")
+    model = input("Model:\n")
+    year = input("Rok produkcji:\n")
+    body_style = input("Typ Nadwozia:\n")
+    colour = input("Kolor:\n")
+    milleage_reading = input("Odczyt z licznika:\n")
+    transmission = input("Skrzynia biegów:\n")
+    fuel = input("Paliwo:\n")
+    located_in = input("Lokalizacja:\n")
+    horse_power = input("Ilość koni mechanicznych:\n")
+    details = input("Inne szczegóły:\n")
+    
+    car = Car(details, brand, model, year, body_style, colour, milleage_reading, transmission, fuel, located_in, horse_power)
+    auction = Auction(auction_duration, car, starting_price, minimal_price, buy_now_price, title)
+    app.auctions.append(auction)
+    my_auctions()
+    
 class Service:
     def create_account(self):
         app = App()
@@ -18,7 +55,7 @@ class Service:
             print("Twoje konto zostało utworzone :)")
             user = User(e_mail, password, first_name, surname, address, phone)
             app.users.add(user)
-            return user
+            self.login()
         else:
             # todo
             choice = input("Logowanie nieudane\n1-Spróbuj jeszcze raz\n2-Powrót\n")
@@ -84,9 +121,9 @@ class Service:
                                 "-----------------------------------------------------------------------------------\n")
 
             if menu_choice == "1":
-                print("Pokazuje aukcje")
+                show_auctions()
             elif menu_choice == "2":
-                print("Stwórz aukcje")
+                create_auction()
             elif menu_choice == "3":
                 app.logged_in_user = None
                 print("Wylogowany")

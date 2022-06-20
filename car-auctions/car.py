@@ -3,9 +3,8 @@ from item import Item
 
 class Car(Item):
 
-    def __init__(self, name, description, starting_price, minimal_price, buy_now_price,
-                 brand, model, year, body_style, colour, milleage_reading, transmission, fuel, located_in, horse_power):
-        super().__init__(name, description, starting_price, minimal_price, buy_now_price)
+    def __init__(self, details, brand, model, year, body_style, colour, milleage_reading, transmission, fuel, located_in, horse_power):
+        super().__init__(details)
         self.brand = brand
         self.model = model
         self.year = year
@@ -19,8 +18,7 @@ class Car(Item):
 
     def print_car(self):
         print(
-            f"dane samochodu nr {self.id}, nazwa: {self.name}, opis: {self.description}, cena wywoławcza: {self.starting_price}"
-            f", cena minimalna: {self.minimal_price}, cena kup teraz: {self.buy_now_price}, marka: {self.brand}"
+            f"dane samochodu nr {self.id}, szczegóły: {self.details}, marka: {self.brand}"
             f", model: {self.model}, rok produkcji: {self.year}, rodzaj nadwozaia: {self.body_style}, kolor: {self.colour}"
             f", przebieg: {self.milleage_reading}, skrzynia biegów: {self.transmission}, paliwo: {self.fuel}"
             f", lokalizacja: {self.located_in}, ilość koni mechanicznych: {self.horse_power}")

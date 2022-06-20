@@ -13,6 +13,8 @@ class User:
         self.surname = surname
         self.address = address
         self.phone = phone
+        self.auctions = []
+        self.bids = []
 
     def print_user(self):
         print(

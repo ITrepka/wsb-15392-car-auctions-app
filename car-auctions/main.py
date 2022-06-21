@@ -1,7 +1,7 @@
 from app import App
-from service import Service
+from app_service import *
+from db_service import *
 
-app = App()
-service = Service()
-
-service.startApp()
+# app = App()
+init()
+startApp()

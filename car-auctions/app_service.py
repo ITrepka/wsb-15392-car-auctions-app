@@ -147,7 +147,17 @@ def login():
 
 
 def auctioned_by_me():
-    pass
+    app = App()
+    session = get_session()
+    user_id = app.logged_in_user.id
+    bids = get_bids_by_user_id(session, user_id)
+    for b in bids:
+        #todo distinct
+        auction = get_auction_by_id(session, b.auction_id)
+        print_auction_short(auction)
+
+
+
 
 
 def my_auctions_menu():

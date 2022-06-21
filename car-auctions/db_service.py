@@ -102,6 +102,11 @@ def create_tables():
     Base.metadata.create_all(engine)
 
 
+def get_bids_by_user_id(session, user_id):
+    bid = session.query(Bid).filter(Bid.user_id == user_id)
+    session.commit()
+    return bid
+
 def get_auction_by_id(session, auction_id):
     auction = session.query(Auction).filter(Auction.id == auction_id)
     session.commit()

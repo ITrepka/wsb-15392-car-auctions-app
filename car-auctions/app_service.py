@@ -22,7 +22,6 @@ def show_auction_details(auction):
         current_price = auction.starting_price
 
     car = get_car_by_id(session, auction.car_id)
-    current_price = max(auction.minimal_price, auction.highest_bid_id)
     print(f"Aukcja: {auction.id}\nTytuł: {auction.title}\nAktualna cena: {current_price}\n"
           f"Kup Teraz: {auction.buy_now_price}\nData Zakończenia Aukcji: {auction.auction_end}\n"
           f"\nPrzedmiot aukcji:\n{print_car(car)}")
@@ -70,23 +69,32 @@ def take_part_auction():
 
 def filter_auctions(auctions):
     menu_choice = input("-----------------------------------------------------------------------------------\n"
-                        "1-Cena Max\n2-Lokalizacja\n3-Model\n4-Powrót\n"
+                        "1-Cena Max\n2-Lokalizacja\n3-Model\n4-Usuń Filtry\n5-Powrót\n"
                         "-----------------------------------------------------------------------------------\n")
     filtered = []
+
+    # auctions = get_all_auctions(session)
     if menu_choice == "1":
         max_price = input("Podaj cenę maksymalną: \n")
-
+        session = get_session()
         for a in auctions:
-            session = get_session()
-            bid = get_bid_by_id(session, a.highest_bid_id)
-            if bid.money_offer <= max_price:
-                filtered.append(a)
+            if a.highest_bid_id is not None:
+                bid = get_bid_by_id(session, a.highest_bid_id)
+                if bid.money_offer <= int(max_price):
+                    filtered.append(a)
+            else:
+                if a.starting_price <= int(max_price):
+                    filtered.append(a)
+
         show_auctions(filtered)
     elif menu_choice == "2":
         localization = input("Podaj nazwę miasta: \n")
         for a in auctions:
             session = get_session()
+            print(a.id)
+            print(a.car_id)
             car = get_car_by_id(session, a.car_id)
+            print(car.id)
             if car.located_in.lower() == localization.lower():
                 filtered.append(a)
         show_auctions(filtered)
@@ -99,6 +107,8 @@ def filter_auctions(auctions):
                 filtered.append(a)
         show_auctions(filtered)
     elif menu_choice == "4":
+        show_auctions(None)
+    elif menu_choice == "5":
         show_auctions(auctions)
 
 
@@ -129,8 +139,8 @@ def quick_sort(array, start, end, compare_func):
         return
 
     p = partition(array, start, end, compare_func)
-    quick_sort(array, start, p-1, compare_func)
-    quick_sort(array, p+1, end, compare_func)
+    quick_sort(array, start, p - 1, compare_func)
+    quick_sort(array, p + 1, end, compare_func)
 
 
 def sort_auctions(auctions):
@@ -140,27 +150,54 @@ def sort_auctions(auctions):
                         "-----------------------------------------------------------------------------------\n")
     if menu_choice == "1":
         session = get_session()
-        bids = []
+        offers = {}
         sorted_auctions = []
         for a in auctions:
-            bids = get_bid_by_id(session, a.highest_bid_id)
-        quick_sort(bids, 0, len(bids) - 1, lambda x, y: x.money_offer < y.money_offer)
-        for b in bids:
-            sorted_auctions.append(get_auction_by_highest_bid_id())
+            if a.highest_bid_id is not None:
+                bid = get_bid_by_id(session, a.highest_bid_id)
+                offers[a.id] = bid.money_offer
+            else:
+                offers[a.id] = a.starting_price
+        offers = sorted(offers.items(), key=lambda x: x[1])
+        print(offers)
+        for auction_id in offers:
+            sorted_auctions.append(get_auction_by_id(session, auction_id[0]))
+        show_auctions(sorted_auctions)
     elif menu_choice == "2":
-        sort_auctions()
+        session = get_session()
+        offers = {}
+        sorted_auctions = []
+        for a in auctions:
+            if a.highest_bid_id is not None:
+                bid = get_bid_by_id(session, a.highest_bid_id)
+                offers[a.id] = bid.money_offer
+            else:
+                offers[a.id] = a.starting_price
+        offers = sorted(offers.items(), key=lambda x: x[1], reverse=True)
+        print(offers)
+        for auction_id in offers:
+            sorted_auctions.append(get_auction_by_id(session, auction_id[0]))
+        show_auctions(sorted_auctions)
     elif menu_choice == "3":
-        sorted_auctions = sorted(auctions, lambda x: x.auction_end, reverse=False)
+        sorted_auctions = auctions
+        quick_sort(auctions, 0, len(auctions) - 1, lambda x, y: x.auction_end > y.auction_end)
+        show_auctions(sorted_auctions)
     elif menu_choice == "4":
-        sorted_auctions = sorted(auctions, lambda x: x.auction_end, reverse=True)
+        sorted_auctions = auctions
+        quick_sort(auctions, 0, len(auctions) - 1, lambda x, y: x.auction_end < y.auction_end)
+        show_auctions(sorted_auctions)
     elif menu_choice == "5":
         menu()
     else:
         # todo
         print("Wprowadź poprawną liczbę!")
+        sort_auctions(auctions)
 
 
 def show_auctions(auctions):
+    print("-----------------------------------------------------------------------------------\n"
+          "Aukcje!\n"
+          "-----------------------------------------------------------------------------------\n")
     session = get_session()
     if auctions is None:
         auctions = get_all_auctions(session)
@@ -168,13 +205,12 @@ def show_auctions(auctions):
     for a in auctions:
         print_auction_short(a)
 
-    menu_choice = input("-----------------------------------------------------------------------------------\n"
-                        "Wszystkie aukcje!\n1-Filtry\n2-Sortuj\n3-Licytuj\n4-Powrót do Menu\n"
-                        "-----------------------------------------------------------------------------------\n")
+    menu_choice = input("1-Filtry\n2-Sortuj\n3-Licytuj\n4-Powrót do Menu\n")
+
     if menu_choice == "1":
-        filter_auctions()
+        filter_auctions(auctions)
     elif menu_choice == "2":
-        sort_auctions()
+        sort_auctions(auctions)
     elif menu_choice == "3":
         take_part_auction()
     elif menu_choice == "4":
@@ -182,22 +218,26 @@ def show_auctions(auctions):
     else:
         # todo
         print("Wprowadź poprawną liczbę!")
+        show_auctions(auctions)
 
 
 def print_auction_short(a):
-    if a.bid is None:
-        money_offer = "Brak ofert"
+    if a.highest_bid_id is None:
+        money_offer = 0
     else:
-        bid_id = a.bid.id
+        bid_id = a.highest_bid_id
         session = get_session()
         bid = get_bid_by_id(session, bid_id)
         money_offer = bid.money_offer
 
     print(f"<Aukcja(ID = {a.id}, tytuł = {a.title}, data zakończenia = {a.auction_end},"
-          f" najwyższa oferta = {money_offer})>\n")
+          f"aktualna_cena = {max(money_offer, a.starting_price)})>\n")
 
 
 def my_auctions():
+    print("-----------------------------------------------------------------------------------\n"
+          "Moje Aukcje!"
+          "-----------------------------------------------------------------------------------\n")
     app = App()
     session = get_session()
     user_id = app.logged_in_user.id
@@ -205,6 +245,23 @@ def my_auctions():
 
     for a in auctions:
         print_auction_short(a)
+
+    menu_choice = input("-----------------------------------------------------------------------------------\n"
+                        "1-Pokaż szczegóły wybranej aukcji\n2-Licytuj\n3-Powrót do Menu\n"
+                        "-----------------------------------------------------------------------------------\n")
+    if menu_choice == "1":
+        session = get_session()
+        auction_id = input("Podaj ID aukcji:\n")
+        auction = get_auction_by_id(session, auction_id)
+        show_auction_details(auction)
+    elif menu_choice == "2":
+        take_part_auction()
+    elif menu_choice == "3":
+        menu()
+    else:
+        # todo
+        print("Wprowadź poprawną liczbę!")
+        my_auctions()
 
 
 def create_auction():
@@ -221,7 +278,7 @@ def create_auction():
     year = input("Rok produkcji:\n")
     body_style = input("Typ Nadwozia:\n")
     colour = input("Kolor:\n")
-    milleage_reading = input("Odczyt z licznika:\n")
+    milleage_reading = input("Liczba przejechanych kilometrów na liczniku:\n")
     transmission = input("Skrzynia biegów:\n")
     fuel = input("Paliwo:\n")
     located_in = input("Lokalizacja:\n")
@@ -317,6 +374,7 @@ def login():
         else:
             # todo
             print("Wprowadź poprawną liczbę!")
+            login()
 
 
 def auctioned_by_me():
@@ -368,7 +426,7 @@ def menu():
                             "-----------------------------------------------------------------------------------\n")
 
         if menu_choice == "1":
-            show_auctions()
+            show_auctions(None)
         elif menu_choice == "2":
             my_auctions_menu()
         elif menu_choice == "3":

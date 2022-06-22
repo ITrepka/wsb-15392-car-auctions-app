@@ -69,6 +69,12 @@ class Car(Base):
     created_at = sqlalchemy.Column(sqlalchemy.DateTime)
 
 
+def update_auction(session, auction, user_id, bid_id):
+    session.query(Auction).filter(Auction.id == auction.id).update({"highest_bid_id": bid_id,
+                                                                    "updated_at": datetime.now()},
+                                                                   synchronize_session="fetch")
+
+
 def get_session():
     Session = sqlalchemy.orm.sessionmaker()
     Session.configure(bind=engine)
@@ -99,7 +105,7 @@ def create_database():
 
 
 def get_car_by_id(session, car_id):
-    car = session.query(Car).filter(Car.id == car_id)
+    car = session.query(Car).filter(Car.id == car_id).one()
     session.commit()
     return car
 
@@ -113,14 +119,15 @@ def get_bids_by_user_id(session, user_id):
     session.commit()
     return bid
 
+
 def get_auction_by_id(session, auction_id):
-    auction = session.query(Auction).filter(Auction.id == auction_id)
+    auction = session.query(Auction).filter(Auction.id == auction_id).one()
     session.commit()
     return auction
 
 
 def get_bid_by_id(session, bid_id):
-    bid = session.query(Bid).filter(Bid.id == bid_id)
+    bid = session.query(Bid).filter(Bid.id == bid_id).one()
     session.commit()
     return bid
 
@@ -151,7 +158,7 @@ def get_user_by_email(session, user_email):
 
 def get_all_auctions(session):
     auctions = []
-    for s in session.query(User).all():
+    for s in session.query(Auction).all():
         auctions.append(s)
     return auctions
 

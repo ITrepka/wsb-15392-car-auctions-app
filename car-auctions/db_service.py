@@ -98,6 +98,12 @@ def create_database():
     conn.close()
 
 
+def get_car_by_id(session, car_id):
+    car = session.query(Car).filter(Car.id == car_id)
+    session.commit()
+    return car
+
+
 def create_tables():
     Base.metadata.create_all(engine)
 
@@ -185,7 +191,7 @@ def save_bid(session, bid):
 # session = Session()
 #
 # ju1 = User(name="Marcin", fullname="Marcin Albiniak", nickname="marc")
-# session.add(ju1)
+# session.query.
 # session.commit()
 #
 # ju2 = User(name="Olga", fullname="Olga Kot", nickname="kotka")

@@ -1,14 +1,11 @@
 from app import App
-# from auction import Auction
-# from car import Car
-# from user import User
 from db_service import *
 import hashlib
 
 
 def print_car(car):
     print(f"Marka: {car.brand}, Model: {car.model}, Rok produkcji: {car.year}, Typ nadwozia: {car.body_style}"
-          f"Kolor: {car.colour}, Przebieg: {car.milleage_reading}, Skrzynia biegów: {car.transmission}"
+          f"Kolor: {car.colour}, Przebieg: {car.milleage_reading}, Skrzynia biegów: {car.transmission}, "
           f"Paliwo: {car.fuel}, Lokalizacja: {car.located_in}, Liczba koni mechanicznych: {car.horse_power}\n"
           f"Inne informacje: {car.details}")
 
@@ -24,7 +21,8 @@ def show_auction_details(auction):
     car = get_car_by_id(session, auction.car_id)
     print(f"Aukcja: {auction.id}\nTytuł: {auction.title}\nAktualna cena: {current_price}\n"
           f"Kup Teraz: {auction.buy_now_price}\nData Zakończenia Aukcji: {auction.auction_end}\n"
-          f"\nPrzedmiot aukcji:\n{print_car(car)}")
+          f"\nPrzedmiot aukcji:\n")
+    print_car(car)
 
 
 def add_bid(auction):
@@ -69,11 +67,10 @@ def take_part_auction():
 
 def filter_auctions(auctions):
     menu_choice = input("-----------------------------------------------------------------------------------\n"
-                        "1-Cena Max\n2-Lokalizacja\n3-Model\n4-Usuń Filtry\n5-Powrót\n"
+                        "1-Cena Max\n2-Lokalizacja\n3-Marka\n4-Usuń Filtry\n5-Powrót\n"
                         "-----------------------------------------------------------------------------------\n")
     filtered = []
 
-    # auctions = get_all_auctions(session)
     if menu_choice == "1":
         max_price = input("Podaj cenę maksymalną: \n")
         session = get_session()
@@ -91,19 +88,16 @@ def filter_auctions(auctions):
         localization = input("Podaj nazwę miasta: \n")
         for a in auctions:
             session = get_session()
-            print(a.id)
-            print(a.car_id)
             car = get_car_by_id(session, a.car_id)
-            print(car.id)
             if car.located_in.lower() == localization.lower():
                 filtered.append(a)
         show_auctions(filtered)
     elif menu_choice == "3":
-        model = input("Podaj model samochodu: \n")
+        brand = input("Podaj markę samochodu: \n")
         for a in auctions:
             session = get_session()
             car = get_car_by_id(session, a.car_id)
-            if car.model.lower() == model.lower():
+            if car.brand.lower() == brand.lower():
                 filtered.append(a)
         show_auctions(filtered)
     elif menu_choice == "4":
@@ -112,35 +106,35 @@ def filter_auctions(auctions):
         show_auctions(auctions)
 
 
-def partition(array, start, end, compare_func):
-    pivot = array[start]
+def partition(arr, start, end, compare_func):
+    pivot = arr[start]
     low = start + 1
     high = end
 
     while True:
-        while low <= high and compare_func(array[high], pivot):
+        while low <= high and compare_func(arr[high], pivot):
             high = high - 1
 
-        while low <= high and not compare_func(array[low], pivot):
+        while low <= high and not compare_func(arr[low], pivot):
             low = low + 1
 
         if low <= high:
-            array[low], array[high] = array[high], array[low]
+            arr[low], arr[high] = arr[high], arr[low]
         else:
             break
 
-    array[start], array[high] = array[high], array[start]
+    arr[start], arr[high] = arr[high], arr[start]
 
     return high
 
 
-def quick_sort(array, start, end, compare_func):
+def quick_sort(arr, start, end, compare_func):
     if start >= end:
         return
 
-    p = partition(array, start, end, compare_func)
-    quick_sort(array, start, p - 1, compare_func)
-    quick_sort(array, p + 1, end, compare_func)
+    p = partition(arr, start, end, compare_func)
+    quick_sort(arr, start, p - 1, compare_func)
+    quick_sort(arr, p + 1, end, compare_func)
 
 
 def sort_auctions(auctions):
@@ -174,7 +168,6 @@ def sort_auctions(auctions):
             else:
                 offers[a.id] = a.starting_price
         offers = sorted(offers.items(), key=lambda x: x[1], reverse=True)
-        print(offers)
         for auction_id in offers:
             sorted_auctions.append(get_auction_by_id(session, auction_id[0]))
         show_auctions(sorted_auctions)

@@ -1,4 +1,5 @@
 from app import App
+from app_exceptions import WrongMenuChoice
 from db_service import *
 import hashlib
 
@@ -33,6 +34,9 @@ def add_bid(auction):
     current_timestamp = datetime.now()
     bid = Bid(money_offer=money_offer, user_id=user_id, created_at=current_timestamp, auction_id=auction.id)
     bid_id = save_bid(session, bid)
+    update_auction(session, auction, bid_id)
+    print("Oferta została dodana poprawnie")
+    my_auctions_menu()
 
 
 def buy_now(auction):
@@ -42,8 +46,9 @@ def buy_now(auction):
     current_timestamp = datetime.now()
     bid = Bid(money_offer=auction.buy_now_price, user_id=user_id, created_at=current_timestamp, auction_id=auction.id)
     bid_id = save_bid(session, bid)
-    # todo edit auction
-    update_auction(session, auction, user_id, bid_id)
+    update_auction(session, auction,  bid_id)
+    print("Zakup zakończony sukcesem!")
+    my_auctions_menu()
 
 
 def take_part_auction():
@@ -52,7 +57,7 @@ def take_part_auction():
     auction = get_auction_by_id(session, auction_id)
     show_auction_details(auction)
     menu_choice = input("-----------------------------------------------------------------------------------\n"
-                        "1-Licytuj\n2-Kup teraz\n3-Powrót\n4-Menu Główne\n"
+                        "1-Złóż ofertę\n2-Kup teraz\n3-Powrót\n4-Menu Główne\n"
                         "-----------------------------------------------------------------------------------\n")
 
     if menu_choice == "1":
@@ -63,6 +68,8 @@ def take_part_auction():
         show_auctions(None)
     elif menu_choice == "4":
         menu()
+    else:
+        raise WrongMenuChoice(menu_choice)
 
 
 def filter_auctions(auctions):
@@ -104,6 +111,10 @@ def filter_auctions(auctions):
         show_auctions(None)
     elif menu_choice == "5":
         show_auctions(auctions)
+    else:
+        raise WrongMenuChoice(menu_choice)
+        # print("Wprowadź poprawną liczbę!")
+        # filter_auctions(auctions)
 
 
 def partition(arr, start, end, compare_func):
@@ -140,7 +151,7 @@ def quick_sort(arr, start, end, compare_func):
 def sort_auctions(auctions):
     menu_choice = input("-----------------------------------------------------------------------------------\n"
                         "1-Cena rosnąco\n2-Cena malejąco\n3-Data zakończenia rosnąco\n"
-                        "4-Data zakończenia rosnąco\n5-Powrót do Menu\n"
+                        "4-Data zakończenia rosnąco\n5-Powrót\n"
                         "-----------------------------------------------------------------------------------\n")
     if menu_choice == "1":
         session = get_session()
@@ -180,11 +191,11 @@ def sort_auctions(auctions):
         quick_sort(auctions, 0, len(auctions) - 1, lambda x, y: x.auction_end < y.auction_end)
         show_auctions(sorted_auctions)
     elif menu_choice == "5":
-        menu()
+        show_auctions(auctions)
     else:
-        # todo
-        print("Wprowadź poprawną liczbę!")
-        sort_auctions(auctions)
+        raise WrongMenuChoice(menu_choice)
+        # print("Wprowadź poprawną liczbę!")
+        # sort_auctions(auctions)
 
 
 def show_auctions(auctions):
@@ -209,9 +220,9 @@ def show_auctions(auctions):
     elif menu_choice == "4":
         menu()
     else:
-        # todo
-        print("Wprowadź poprawną liczbę!")
-        show_auctions(auctions)
+        raise WrongMenuChoice(menu_choice)
+        # print("Wprowadź poprawną liczbę!")
+        # show_auctions(auctions)
 
 
 def print_auction_short(a):
@@ -247,14 +258,15 @@ def my_auctions():
         auction_id = input("Podaj ID aukcji:\n")
         auction = get_auction_by_id(session, auction_id)
         show_auction_details(auction)
+        my_auctions()
     elif menu_choice == "2":
         take_part_auction()
     elif menu_choice == "3":
         menu()
     else:
-        # todo
-        print("Wprowadź poprawną liczbę!")
-        my_auctions()
+        raise WrongMenuChoice(menu_choice)
+        # print("Wprowadź poprawną liczbę!")
+        # my_auctions()
 
 
 def create_auction():
@@ -319,15 +331,14 @@ def create_account():
         print("Twoje konto zostało utworzone :)\n")
         login()
     else:
-        # todo
         choice = input("Nieudane tworzenie konta\n1-Spróbuj jeszcze raz\n2-Powrót\n")
         if choice == "1":
             create_account()
         elif choice == "2":
             menu()
         else:
-            # todo
-            print("Wprowadź poprawną liczbę!")
+            raise WrongMenuChoice(choice)
+            # print("Wprowadź poprawną liczbę!")
 
 
 def display_home():
@@ -365,9 +376,9 @@ def login():
         elif choice == "2":
             menu()
         else:
-            # todo
-            print("Wprowadź poprawną liczbę!")
-            login()
+            raise WrongMenuChoice(choice)
+            # print("Wprowadź poprawną liczbę!")
+            # login()
 
 
 def auctioned_by_me():
@@ -375,11 +386,28 @@ def auctioned_by_me():
     session = get_session()
     user_id = app.logged_in_user.id
     bids = get_bids_by_user_id(session, user_id)
+    auctions = []
     for b in bids:
-        # todo distinct
         auction = get_auction_by_id(session, b.auction_id)
-        print_auction_short(auction)
+        if auction not in auctions:
+            print_auction_short(auction)
+            auctions.append(auction)
 
+    menu_choice = input("-----------------------------------------------------------------------------------\n"
+                        "1-Pokaż szczegóły wybranej aukcji\n2-Licytuj\n3-Powrót do Menu\n"
+                        "-----------------------------------------------------------------------------------\n")
+    if menu_choice == "1":
+        session = get_session()
+        auction_id = input("Podaj ID aukcji:\n")
+        auction = get_auction_by_id(session, auction_id)
+        show_auction_details(auction)
+        my_auctions()
+    elif menu_choice == "2":
+        take_part_auction()
+    elif menu_choice == "3":
+        menu()
+    else:
+        raise WrongMenuChoice(menu_choice)
 
 def my_auctions_menu():
     menu_choice = input("-----------------------------------------------------------------------------------\n"
@@ -393,8 +421,8 @@ def my_auctions_menu():
     elif menu_choice == "3":
         menu()
     else:
-        # todo
-        print("Wprowadź poprawną liczbę!")
+        raise WrongMenuChoice(menu_choice)
+        # print("Wprowadź poprawną liczbę!")
 
 
 def menu():

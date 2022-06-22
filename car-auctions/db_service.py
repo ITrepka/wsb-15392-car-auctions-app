@@ -69,7 +69,7 @@ class Car(Base):
     created_at = sqlalchemy.Column(sqlalchemy.DateTime)
 
 
-def update_auction(session, auction, user_id, bid_id):
+def update_auction(session, auction, bid_id):
     session.query(Auction).filter(Auction.id == auction.id).update({"highest_bid_id": bid_id,
                                                                     "updated_at": datetime.now()},
                                                                    synchronize_session="fetch")
@@ -91,7 +91,7 @@ def init():
 def create_init_user():
     session = get_session()
     user_password = hashlib.md5("pass".encode('utf-8')).hexdigest()
-    user = User(e_mail="root@gmail.com", password=user_password, first_name="Ireneusz",
+    user = User(e_mail="pp@wp.pl", password=user_password, first_name="Ireneusz",
                 surname="Trepka", address="LA 101", phone="999000111")
     session.add(user)
     session.commit()
@@ -192,28 +192,3 @@ def save_bid(session, bid):
     session.add(bid)
     session.commit()
     return bid.id
-
-# Session = sqlalchemy.orm.sessionmaker()
-# Session.configure(bind=engine)
-# session = Session()
-#
-# ju1 = User(name="Marcin", fullname="Marcin Albiniak", nickname="marc")
-# session.query.
-# session.commit()
-#
-# ju2 = User(name="Olga", fullname="Olga Kot", nickname="kotka")
-# session.add(ju2)
-# session.commit()
-#
-# Session = sessionmaker(bind=engine)
-# session = Session()
-#
-# print("***** wszystkie dane *******")
-#
-# for s in session.query(User).all():
-#     print(s.fullname)
-#
-# print("***** filtrowane dane *******")
-#
-# for s in session.query(User).filter(User.nickname == 'marc'):
-#     print(s.fullname)

@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from app import App
-from app_exceptions import WrongMenuChoice
+from app_exceptions import WrongMenuChoice, OfferedPriceLessThanCurrentPrice, IsVacant, InvalidArgumentException
 from db_service import *
 import hashlib
 
@@ -28,10 +28,20 @@ def show_auction_details(auction):
     print_car(car)
 
 
+def get_highest_auction_offer(auction):
+    session = get_session()
+    if auction.highest_bid_id is None:
+        return auction.starting_price
+    else:
+        return get_bid_by_id(session, auction.highest_bid_id).money_offer
+
+
 def add_bid(auction):
     app = App()
     user_id = app.logged_in_user.id
     money_offer = input("Podaj kwotę:\n")
+    if money_offer <= get_highest_auction_offer(auction):
+        raise OfferedPriceLessThanCurrentPrice(money_offer)
     session = get_session()
     current_timestamp = datetime.now()
     bid = Bid(money_offer=money_offer, user_id=user_id, created_at=current_timestamp, auction_id=auction.id)
@@ -293,6 +303,15 @@ def create_auction():
     horse_power = input("Ilość koni mechanicznych:\n")
     details = input("Inne szczegóły:\n")
 
+    if starting_price is None or starting_price == "":
+        raise IsVacant("starting_price")
+    if minimal_price is None or minimal_price == "":
+        raise IsVacant("minimal_price")
+    if minimal_price > buy_now_price:
+        raise InvalidArgumentException("Cena minimalna nie może być większa niż kwota kup teraz")
+    if buy_now_price < starting_price:
+        raise InvalidArgumentException("Cena kup teraz nie może być mniejsza od ceny startowej")
+
     current_timestamp = datetime.now()
     auction_end = current_timestamp + timedelta(days=int(auction_duration))
 
@@ -316,7 +335,11 @@ def create_auction():
 def create_account():
     print("Tworzenie konta:\n")
     e_mail = input("Adres E-mail:\n")
+    if e_mail is None or e_mail == "":
+        raise IsVacant("e_mail")
     password = input("Hasło:\n")
+    if password is None or password == "":
+        raise IsVacant("Hasło")
     repeated_password = input("Powtórz hasło:\n")
     first_name = input("Imię:\n")
     surname = input("Nazwisko:\n")
@@ -324,6 +347,8 @@ def create_account():
     phone = input("Telefon kontaktowy:\n")
     created_at = datetime.now()
     updated_at = datetime.now()
+
+
     if password == repeated_password and len(e_mail) > 0 and len(password) > 0:
         user = User(e_mail=e_mail, password=hashlib.md5(password.encode('utf-8')).hexdigest(), first_name=first_name,
                     surname=surname, address=address,

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from app import App
 from app_exceptions import WrongMenuChoice
 from db_service import *
@@ -46,7 +48,7 @@ def buy_now(auction):
     current_timestamp = datetime.now()
     bid = Bid(money_offer=auction.buy_now_price, user_id=user_id, created_at=current_timestamp, auction_id=auction.id)
     bid_id = save_bid(session, bid)
-    update_auction(session, auction,  bid_id)
+    update_auction(session, auction, bid_id)
     print("Zakup zakończony sukcesem!")
     my_auctions_menu()
 
@@ -139,6 +141,7 @@ def partition(arr, start, end, compare_func):
     return high
 
 
+# funkcja rekurencyjna
 def quick_sort(arr, start, end, compare_func):
     if start >= end:
         return
@@ -409,6 +412,7 @@ def auctioned_by_me():
     else:
         raise WrongMenuChoice(menu_choice)
 
+
 def my_auctions_menu():
     menu_choice = input("-----------------------------------------------------------------------------------\n"
                         "\n1-Pokaż aukcje stworzone przeze mnie\n2-Aukcje, w których biorę udział\n3-Powrót\n"
@@ -461,5 +465,5 @@ def menu():
             print("Wprowadź poprawną liczbę!")
 
 
-def startApp():
+def start_app():
     menu()

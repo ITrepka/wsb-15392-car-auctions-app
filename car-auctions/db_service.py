@@ -1,5 +1,5 @@
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -8,6 +8,28 @@ engine = sqlalchemy.create_engine('mysql+mysqlconnector://root:root@localhost:33
                                   echo=False)
 
 Base = declarative_base()
+
+
+def init():
+    create_database()
+    create_tables()
+    # create_init_user(session)
+
+
+def create_database():
+    engine2 = sqlalchemy.create_engine('mysql://root:root@localhost:3306')  # connect to server
+    conn = engine2.connect()
+    conn.execute("create database if not exists car_auctions")
+    conn.close()
+
+
+def create_init_user():
+    session = get_session()
+    user_password = hashlib.md5("pass".encode('utf-8')).hexdigest()
+    user = User(e_mail="pp@wp.pl", password=user_password, first_name="Ireneusz",
+                surname="Trepka", address="LA 101", phone="999000111")
+    session.add(user)
+    session.commit()
 
 
 def sort_key(bid):
@@ -80,28 +102,6 @@ def get_session():
     Session.configure(bind=engine)
     session = Session()
     return session
-
-
-def init():
-    create_database()
-    create_tables()
-    # create_init_user(session)
-
-
-def create_init_user():
-    session = get_session()
-    user_password = hashlib.md5("pass".encode('utf-8')).hexdigest()
-    user = User(e_mail="pp@wp.pl", password=user_password, first_name="Ireneusz",
-                surname="Trepka", address="LA 101", phone="999000111")
-    session.add(user)
-    session.commit()
-
-
-def create_database():
-    engine2 = sqlalchemy.create_engine('mysql://root:root@localhost:3306')  # connect to server
-    conn = engine2.connect()
-    conn.execute("create database if not exists car_auctions")
-    conn.close()
 
 
 def get_car_by_id(session, car_id):

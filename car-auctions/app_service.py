@@ -42,6 +42,8 @@ def add_bid(auction):
     money_offer = input("Podaj kwotę:\n")
     if int(money_offer) <= get_highest_auction_offer(auction):
         raise OfferedPriceLessThanCurrentPrice(money_offer)
+    if int(money_offer) > auction.buy_now_price:
+        raise InvalidArgumentException("Podana kwota nie może być wyższa od ceny kup teraz")
     session = get_session()
     current_timestamp = datetime.now()
     bid = Bid(money_offer=money_offer, user_id=user_id, created_at=current_timestamp, auction_id=auction.id)

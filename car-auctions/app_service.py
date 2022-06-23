@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 from app import App
-from app_exceptions import WrongMenuChoice, OfferedPriceLessThanCurrentPrice, IsVacant, InvalidArgumentException
+from app_exceptions import WrongMenuChoice, OfferedPriceLessThanCurrentPrice, IsVacant, InvalidArgumentException, \
+    AuctionTerminated
 from db_service import *
 import hashlib
 
@@ -75,8 +76,12 @@ def take_part_auction():
                         "-----------------------------------------------------------------------------------\n")
 
     if menu_choice == "1":
+        if auction.auction_end < datetime.now():
+            raise AuctionTerminated(auction_id)
         add_bid(auction)
     elif menu_choice == "2":
+        if auction.auction_end < datetime.now():
+            raise AuctionTerminated(auction_id)
         buy_now(auction)
     elif menu_choice == "3":
         show_auctions(None)

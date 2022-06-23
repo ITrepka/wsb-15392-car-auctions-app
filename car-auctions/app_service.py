@@ -40,7 +40,7 @@ def add_bid(auction):
     app = App()
     user_id = app.logged_in_user.id
     money_offer = input("Podaj kwotę:\n")
-    if money_offer <= get_highest_auction_offer(auction):
+    if int(money_offer) <= get_highest_auction_offer(auction):
         raise OfferedPriceLessThanCurrentPrice(money_offer)
     session = get_session()
     current_timestamp = datetime.now()
@@ -348,7 +348,6 @@ def create_account():
     created_at = datetime.now()
     updated_at = datetime.now()
 
-
     if password == repeated_password and len(e_mail) > 0 and len(password) > 0:
         user = User(e_mail=e_mail, password=hashlib.md5(password.encode('utf-8')).hexdigest(), first_name=first_name,
                     surname=surname, address=address,
@@ -467,8 +466,8 @@ def menu():
         elif menu_choice == "3":
             quit()
         else:
-            # todo
-            print("Wprowadź poprawną liczbę!")
+            raise WrongMenuChoice(menu_choice)
+            # print("Wprowadź poprawną liczbę!")
     else:
         print(f"Witaj, {app.logged_in_user.first_name}\n")
         menu_choice = input("-----------------------------------------------------------------------------------\n"
@@ -486,8 +485,8 @@ def menu():
             print("Wylogowany")
             menu()
         else:
-            # todo
-            print("Wprowadź poprawną liczbę!")
+            raise WrongMenuChoice(menu_choice)
+            # print("Wprowadź poprawną liczbę!")
 
 
 def start_app():
